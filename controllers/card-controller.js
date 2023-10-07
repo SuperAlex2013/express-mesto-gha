@@ -23,7 +23,7 @@ const createCard = async (req, res) => {
     const savedCard = await newCard.save();
 
     if (savedCard.name === 'ValidationError') {
-      return handleError(res, savedCard, SERVER_ERROR);
+      return handleError(res, savedCard, BAD_REQUEST);
     }
 
     res.status(CREATED).json(savedCard);
