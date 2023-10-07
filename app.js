@@ -42,8 +42,10 @@ app.use('/*', (req, res, next) => {
 // Connect to MongoDB
 mongoose
   .connect(DB, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB '))  // Log on successful connection
-  .catch((err) => console.log(`DB connection error: ${err}`));  // Log if there's any connection error
+  // Log on successful connection
+  .then(() => console.log('Connected to MongoDB '))
+  // Log if there's any connection error
+  .catch((err) => console.log(`DB connection error: ${err}`));
 
 // Start the Express app
 app.listen(PORT, (err) => {

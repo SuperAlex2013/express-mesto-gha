@@ -46,7 +46,14 @@ const addUser = async (req, res) => {
 
 const updateUserDetails = async (req, res, details, errorMsg) => {
   try {
-    const result = await User.findByIdAndUpdate(req.user._id, details, { new: true, runValidators: true });
+    const result = await User.findByIdAndUpdate(
+      req.user._id,
+      details,
+      {
+          new: true,
+          runValidators: true,
+      }
+  );
     if (!result) {
       return sendErrorResponse(res, null, NOT_FOUND, 'Пользователь с указанным _id не найден.');
     }

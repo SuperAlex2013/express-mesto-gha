@@ -55,7 +55,7 @@ const updateCardLikes = async (req, res, action) => {
     const updatedCard = await Card.findByIdAndUpdate(
       req.params.cardId,
       { [method]: { likes: req.user._id } },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedCard) {
