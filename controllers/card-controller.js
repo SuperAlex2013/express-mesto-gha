@@ -3,7 +3,7 @@ const {
   BAD_REQUEST, NOT_FOUND, SERVER_ERROR, OK, CREATED,
 } = require('../constants');
 
-const handleError = (res, error, code = BAD_REQUEST) => {
+const handleError = (res, error, code = SERVER_ERROR) => {
   res.status(code).send({ message: `Произошла ошибка: ${error.message}` });
 };
 
