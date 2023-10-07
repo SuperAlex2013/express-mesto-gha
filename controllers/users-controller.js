@@ -52,7 +52,7 @@ const updateUserDetails = async (req, res, details, errorMsg) => {
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
     if (!result) {
       return sendErrorResponse(res, null, NOT_FOUND, 'Пользователь с указанным _id не найден.');

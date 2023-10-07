@@ -6,7 +6,7 @@ const {
   getUser,
   addUser,
   updateUser,
-  updateUserAvatar
+  updateUserAvatar,
 } = require('../controllers/users-controller');
 
 // Get details of all users
