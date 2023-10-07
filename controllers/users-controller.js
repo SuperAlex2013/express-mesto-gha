@@ -50,10 +50,10 @@ const updateUserDetails = async (req, res, details, errorMsg) => {
       req.user._id,
       details,
       {
-          new: true,
-          runValidators: true,
+        new: true,
+        runValidators: true,
       }
-  );
+    );
     if (!result) {
       return sendErrorResponse(res, null, NOT_FOUND, 'Пользователь с указанным _id не найден.');
     }
