@@ -13,7 +13,7 @@ const cardSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: (url) => IS_URL.test(url),
-      message: (props) => `${props.value} - невалидная ссылка!`,
+      message: (props) => `${props.value} - кривая ссылка!`,
     },
   },
   owner: {

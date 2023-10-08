@@ -4,97 +4,80 @@ const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
 const ForbiddenError = require('../errors/ForbiddenError');
 
-// Получить данные о всех карточках
+const handleValidationError = (err, next) => {
+  if (err.name === 'ValidationError') {
+    next(new BadRequestError('Неверные данные при создании карточки.'));
+    return true;
+  }
+  return false;
+};
+
+const handleCastError = (err, next, message = 'Неверные данные') => {
+  if (err.name === 'CastError') {
+    next(new BadRequestError(message));
+    return true;
+  }
+  return false;
+};
+
 const getCards = (req, res, next) => {
-  Card
-    .find()
+  Card.find()
     .then((cards) => handleResult(res, cards))
     .catch(next);
 };
 
-// Создаёт карточку
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const newCard = new Card({ name, link, owner: req.user._id });
-  newCard
-    .save()
-    .then((result) => {
-      res.status(CREATED).json(result);
-    })
+
+  newCard.save()
+    .then((result) => res.status(CREATED).json(result))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании карточки.'));
-        return;
+      if (!handleValidationError(err, next)) {
+        next(err);
       }
-      next(err);
     });
 };
 
-// Удаление карточки
 const deleteCards = (req, res, next) => {
   const { cardId } = req.params;
-  return Card.findById(cardId)
+
+  Card.findById(cardId)
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена.');
+        throw new NotFoundError('Карточка с данным _id не обнаружена.');
       } else if (card.owner.toString() !== req.user._id) {
-        throw new ForbiddenError('Вы не можете удалить чужую карточку');
+        throw new ForbiddenError('Удаление чужой карточки запрещено');
       }
       return Card.findByIdAndRemove(cardId).then(() => res.send({ message: 'Карточка успешно удалена' }));
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Некорректные данные _id'));
+      if (!handleCastError(err, next, 'Неправильный _id')) {
+        next(err);
       }
-      next(err);
     });
 };
 
-// Поставить лайк карточке
-const likeCard = (req, res, next) => {
-  Card
-    .findByIdAndUpdate(
-      req.params.cardId,
-      { $addToSet: { likes: req.user._id } },
-      { new: true },
-    )
+const updateLikes = (req, res, next, action) => {
+  const updateOperation = action === 'like' ? { $addToSet: { likes: req.user._id } } : { $pull: { likes: req.user._id } };
+
+  Card.findByIdAndUpdate(req.params.cardId, updateOperation, { new: true })
     .then((result) => {
       if (!result) {
-        throw new NotFoundError('Передан несуществующий _id карточки.');
+        throw new NotFoundError('Карточка с данным _id не обнаружена.');
       }
       handleResult(res, result);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Переданы некорректные данные для постановки/снятии лайка.'));
-        return;
+      if (!handleCastError(err, next, 'Неправильные данные для лайка/дизлайка')) {
+        next(err);
       }
-      next(err);
     });
 };
 
-// Удалить лайк карточке
-const dislikeCard = (req, res, next) => {
-  Card
-    .findByIdAndUpdate(
-      req.params.cardId,
-      { $pull: { likes: req.user._id } },
-      { new: true },
-    )
-    .then((result) => {
-      if (!result) {
-        throw new NotFoundError('Передан несуществующий _id карточки.');
-      }
-      handleResult(res, result);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Переданы некорректные данные для постановки/снятии лайка.'));
-        return;
-      }
-      next(err);
-    });
-};
+const likeCard = (req, res, next) => updateLikes(req, res, next, 'like');
+
+const dislikeCard = (req, res, next) => updateLikes(req, res, next, 'dislike');
 
 module.exports = {
   getCards,
