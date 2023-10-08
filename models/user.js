@@ -43,27 +43,26 @@ const userSchema = new mongoose.Schema({
 
 userSchema.set('toJSON', {
   transform: (doc, ret) => {
-    delete ret.password;
-    return ret;
+    const transformed = { ...ret };
+    delete transformed.password;
+    return transformed;
   },
 });
 
-userSchema.statics.findUserByCredentials = function (email, password) {
-  return this.findOne({ email }).select('+password')
-    .then((user) => {
-      if (!user) {
-        throw new UnauthorizedError('Пользователь с такой почтой не найден');
-      }
+userSchema.statics.findUserByCredentials = (email, password) => this.findOne({ email }).select('+password')
+  .then((user) => {
+    if (!user) {
+      throw new UnauthorizedError('Пользователь с такой почтой не найден');
+    }
 
-      return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            throw new UnauthorizedError('Неправильный пароль');
-          }
-          return user;
-        });
-    });
-};
+    return bcrypt.compare(password, user.password)
+      .then((matched) => {
+        if (!matched) {
+          throw new UnauthorizedError('Неправильный пароль');
+        }
+        return user;
+      });
+  });
 
 const User = mongoose.model('user', userSchema);
 module.exports = User;

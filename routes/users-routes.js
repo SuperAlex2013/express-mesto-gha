@@ -4,7 +4,7 @@ const router = require('express').Router();
 const {
   validationUserId,
   validationUpdateUser,
-  validationUpdateAvatar
+  validationUpdateAvatar,
 } = require('../middlewares/validation');
 
 // Controllers
@@ -13,7 +13,7 @@ const {
   getUser,
   updateUser,
   updateUserAvatar,
-  getCurrentUser
+  getCurrentUser,
 } = require('../controllers/users-controller');
 
 // Routes
