@@ -40,7 +40,7 @@ const login = (req, res, next) => {
       res.cookie('jwt', token, {
         maxAge: COOKIE_MAX_AGE,
         httpOnly: true,
-      }).send({ token });
+      }).send({ message: 'Вход успешен:)' });
     })
     .catch(next);
 };
