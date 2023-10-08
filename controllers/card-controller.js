@@ -22,7 +22,7 @@ const handleCastError = (err, next, message = 'Неверные данные') =
 
 const getCards = (req, res, next) => {
   Card.find()
-    .then(cards => handleResult(res, cards))
+    .then((cards) => handleResult(res, cards))
     .catch(next);
 };
 
@@ -31,8 +31,8 @@ const createCard = (req, res, next) => {
   const newCard = new Card({ name, link, owner: req.user._id });
 
   newCard.save()
-    .then(result => res.status(CREATED).json(result))
-    .catch(err => {
+    .then((result) => res.status(CREATED).json(result))
+    .catch((err) => {
       if (!handleValidationError(err, next)) {
         next(err);
       }
@@ -43,7 +43,7 @@ const deleteCards = (req, res, next) => {
   const { cardId } = req.params;
 
   Card.findById(cardId)
-    .then(card => {
+    .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка с данным _id не обнаружена.');
       } else if (card.owner.toString() !== req.user._id) {
@@ -51,7 +51,7 @@ const deleteCards = (req, res, next) => {
       }
       return Card.findByIdAndRemove(cardId).then(() => res.send({ message: 'Карточка успешно удалена' }));
     })
-    .catch(err => {
+    .catch((err) => {
       if (!handleCastError(err, next, 'Неправильный _id')) {
         next(err);
       }
@@ -62,13 +62,13 @@ const updateLikes = (req, res, next, action) => {
   const updateOperation = action === 'like' ? { $addToSet: { likes: req.user._id } } : { $pull: { likes: req.user._id } };
 
   Card.findByIdAndUpdate(req.params.cardId, updateOperation, { new: true })
-    .then(result => {
+    .then((result) => {
       if (!result) {
         throw new NotFoundError('Карточка с данным _id не обнаружена.');
       }
       handleResult(res, result);
     })
-    .catch(err => {
+    .catch((err) => {
       if (!handleCastError(err, next, 'Неправильные данные для лайка/дизлайка')) {
         next(err);
       }

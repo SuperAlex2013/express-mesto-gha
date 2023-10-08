@@ -7,13 +7,13 @@ const handleResponse = (res, data, statusCode = OK) => res.status(statusCode).js
 
 const getUsers = (req, res, next) => {
   User.find()
-    .then(users => handleResponse(res, users))
+    .then((users) => handleResponse(res, users))
     .catch(next);
 };
 
 const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
-    .then(user => handleResponse(res, user))
+    .then((user) => handleResponse(res, user))
     .catch(next);
 };
 
