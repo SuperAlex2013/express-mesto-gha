@@ -19,55 +19,55 @@ const getCurrentUser = (req, res, next) => {
 
 const getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .then(user => {
+    .then((user => {
       if (!user) {
         throw new NotFoundError('Пользователь по данному _id не обнаружен.');
       }
       handleResponse(res, user);
-    })
-    .catch(err => {
+    }))
+    .catch((err => {
       if (err.name === 'CastError') {
         next(new NotFoundError('Неправильный формат Id'));
         return;
       }
       next(err);
-    });
+    }));
 };
 
 const updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .then(result => {
+    .then((result => {
       if (!result) {
         throw new NotFoundError('Пользователь по данному _id не обнаружен.');
       }
       handleResponse(res, result);
-    })
-    .catch(err => {
+    }))
+    .catch((err => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Ошибочные данные при обновлении профиля.'));
         return;
       }
       next(err);
-    });
+    }));
 };
 
 const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .then(result => {
+    .then((result => {
       if (!result) {
         throw new NotFoundError('Пользователь по данному _id не обнаружен.');
       }
       handleResponse(res, result);
-    })
-    .catch(err => {
+    }))
+    .catch((err => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Ошибочные данные при обновлении аватара.'));
         return;
       }
       next(err);
-    });
+    }));
 };
 
 module.exports = {
