@@ -68,11 +68,11 @@ const updateLikes = (req, res, next, action) => {
       }
       handleResult(res, result);
     })
-    .catch((err) => {
+    .catch(((err) => {
       if (!handleCastError(err, next, 'Неправильные данные для лайка/дизлайка')) {
         next(err);
       }
-    });
+    }));
 };
 
 const likeCard = (req, res, next) => updateLikes(req, res, next, 'like');
