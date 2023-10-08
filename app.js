@@ -11,7 +11,7 @@ const { login, createUser, logout } = require('./controllers/auth');
 const { validationCreateUser, validationLogin } = require('./middlewares/validation');
 const { serverLog } = require('./middlewares/serverlog');
 
-const { PORT = 3000, DB = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
+const { PORT = 3000, DB = 'mongodb://localhost:27017/mestodb' } = process.env;
 const app = express();
 app.use(helmet());
 const limiter = rateLimit({
@@ -22,7 +22,6 @@ app.use(limiter);
 
 app.use(express.json());
 app.use(cookieParser());
-
 // Добавление данных
 app.post('/signup', validationCreateUser, createUser);
 app.post('/signin', validationLogin, login);
@@ -30,24 +29,19 @@ app.get('/signout', logout);
 
 app.use(router);
 
-mongoose.connect(DB, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose
+  .connect(DB, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('✔ Connected to MongoDB '))
+  .catch((err) => console.log(`✖ DB connection error: ${err}`));
 
-mongoose.connection.on('connected', () => {
-  console.log('Успешное подключение к MongoDB');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.log(`Ошибка подключения к базе данных: ${err}`);
-});
-
-// Обработка всех ошибок
+// здесь обрабатываем все ошибки
 app.use(errors());
 app.use(serverLog);
 
 app.listen(PORT, (err) => {
   if (err) {
-    console.log(`Ошибка при старте сервера: ${err}`);
+    console.log(err);
   } else {
-    console.log(`Сервер слушает порт ${PORT}`);
+    console.log(`Listen port ${PORT}`);
   }
 });
