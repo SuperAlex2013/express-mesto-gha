@@ -1,79 +1,79 @@
 const User = require('../models/user');
-const {
-  BAD_REQUEST, NOT_FOUND, SERVER_ERROR, OK, CREATED,
-} = require('../constants');
+const NotFoundError = require('../errors/NotFoundError');
+const BadRequestError = require('../errors/BadRequestError');
+const { OK } = require('../errors/statusCode');
 
-const sendErrorResponse = (res, error, status, message) => {
-  res.status(status || SERVER_ERROR).send({ message: message || `Произошла ошибка: ${error.message}` });
+const handleResponse = (res, data, statusCode = OK) => res.status(statusCode).json(data);
+
+const getUsers = (req, res, next) => {
+  User.find()
+    .then(users => handleResponse(res, users))
+    .catch(next);
 };
 
-const getUsers = async (req, res) => {
-  try {
-    const users = await User.find();
-    res.status(OK).json(users);
-  } catch (error) {
-    sendErrorResponse(res, error);
-  }
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then(user => handleResponse(res, user))
+    .catch(next);
 };
 
-const getUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) {
-      return sendErrorResponse(res, null, NOT_FOUND, 'Пользователь с указанным _id не найден.');
-    }
-    res.status(OK).json(user);
-  } catch (error) {
-    if (error.name === 'CastError') {
-      return sendErrorResponse(res, error, BAD_REQUEST, 'Некорректный id ползователя.');
-    }
-    sendErrorResponse(res, error);
-  }
+const getUser = (req, res, next) => {
+  User.findById(req.params.userId)
+    .then(user => {
+      if (!user) {
+        throw new NotFoundError('Пользователь по данному _id не обнаружен.');
+      }
+      handleResponse(res, user);
+    })
+    .catch(err => {
+      if (err.name === 'CastError') {
+        next(new NotFoundError('Неправильный формат Id'));
+        return;
+      }
+      next(err);
+    });
 };
 
-const addUser = async (req, res) => {
-  try {
-    const newUser = new User(req.body);
-    const result = await newUser.save();
-    res.status(CREATED).json(result);
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      return sendErrorResponse(res, error, BAD_REQUEST, 'Переданы некорректные данные');
-    }
-    sendErrorResponse(res, error);
-  }
+const updateUser = (req, res, next) => {
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .then(result => {
+      if (!result) {
+        throw new NotFoundError('Пользователь по данному _id не обнаружен.');
+      }
+      handleResponse(res, result);
+    })
+    .catch(err => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Ошибочные данные при обновлении профиля.'));
+        return;
+      }
+      next(err);
+    });
 };
 
-const updateUserDetails = async (req, res, details, errorMsg) => {
-  try {
-    const result = await User.findByIdAndUpdate(
-      req.user._id,
-      details,
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
-    if (!result) {
-      return sendErrorResponse(res, null, NOT_FOUND, 'Пользователь с указанным _id не найден.');
-    }
-    res.status(OK).json(result);
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      return sendErrorResponse(res, error, BAD_REQUEST, errorMsg);
-    }
-    sendErrorResponse(res, error);
-  }
+const updateUserAvatar = (req, res, next) => {
+  const { avatar } = req.body;
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+    .then(result => {
+      if (!result) {
+        throw new NotFoundError('Пользователь по данному _id не обнаружен.');
+      }
+      handleResponse(res, result);
+    })
+    .catch(err => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Ошибочные данные при обновлении аватара.'));
+        return;
+      }
+      next(err);
+    });
 };
-
-const updateUser = (req, res) => updateUserDetails(req, res, { name: req.body.name, about: req.body.about }, 'Переданы некорректные данные при обновлении профиля.');
-
-const updateUserAvatar = (req, res) => updateUserDetails(req, res, { avatar: req.body.avatar }, 'Переданы некорректные данные при обновлении аватара.');
 
 module.exports = {
   getUsers,
   getUser,
-  addUser,
   updateUser,
   updateUserAvatar,
+  getCurrentUser,
 };

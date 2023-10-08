@@ -1,59 +1,53 @@
-// Import necessary modules
+require('dotenv').config();
+const helmet = require('helmet');
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
-const usersRoutes = require('./routes/users-routes');
-const cardsRoutes = require('./routes/card-routes');
-const { NOT_FOUND } = require('./constants');
+const { errors } = require('celebrate');
+const cookieParser = require('cookie-parser');
+const router = require('./routes');
+const { TIME_LIMIT, MAX_LIMIT } = require('./util/constants');
+const { login, createUser, logout } = require('./controllers/auth');
+const { validationCreateUser, validationLogin } = require('./middlewares/validation');
+const { serverLog } = require('./middlewares/serverlog');
 
-// Set default port to 3000 if not defined in environment variables
-const { PORT = 3000 } = process.env;
-
-// Define the MongoDB database URL
-const DB = 'mongodb://127.0.0.1:27017/mestodb';
-
-// Initialize the Express app
+const { PORT = 3000, DB = 'mongodb://localhost:27017/mestodb' } = process.env;
 const app = express();
-
-// Middleware to attach user information to the request object
-// (For this example, the user id is hardcoded)
-app.use((req, res, next) => {
-  req.user = {
-    _id: '65217a8d39cadf4df9d92478',
-  };
-
-  // Move on to the next middleware/route handler
-  next();
+app.use(helmet());
+const limiter = rateLimit({
+  windowMs: TIME_LIMIT,
+  max: MAX_LIMIT,
 });
+app.use(limiter);
 
-// Use built-in express middleware to parse JSON bodies
 app.use(express.json());
+app.use(cookieParser());
 
-// Register user and card routes
-app.use(usersRoutes);
-app.use(cardsRoutes);
+// Добавление данных
+app.post('/signup', validationCreateUser, createUser);
+app.post('/signin', validationLogin, login);
+app.get('/signout', logout);
 
-// Handle routes that are not explicitly defined (404 Not Found routes)
-app.use('/*', (req, res, next) => {
-  res.status(NOT_FOUND).send({ message: 'Страница не найдена.' });
+app.use(router);
 
-  next();
+mongoose.connect(DB, { useNewUrlParser: true, useUnifiedTopology: true });
+
+mongoose.connection.on('connected', () => {
+  console.log('Успешное подключение к MongoDB');
 });
 
-// Connect to MongoDB
-mongoose
-  .connect(DB, { useNewUrlParser: true, useUnifiedTopology: true })
-  // Log on successful connection
-  .then(() => console.log('Connected to MongoDB '))
-  // Log if there's any connection error
-  .catch((err) => console.log(`DB connection error: ${err}`));
+mongoose.connection.on('error', (err) => {
+  console.log(`Ошибка подключения к базе данных: ${err}`);
+});
 
-// Start the Express app
+// Обработка всех ошибок
+app.use(errors());
+app.use(serverLog);
+
 app.listen(PORT, (err) => {
   if (err) {
-    // Log if there's an error starting the server
-    console.log(err);
+    console.log(`Ошибка при старте сервера: ${err}`);
   } else {
-    // Log the port on which the server is running
-    console.log(`Listen port ${PORT}`);
+    console.log(`Сервер слушает порт ${PORT}`);
   }
 });
