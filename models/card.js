@@ -20,16 +20,16 @@ const cardSchema = new mongoose.Schema({
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'user',  // Reference to the user model
-    required: true,  // Owner is a required field
+    ref: 'user',
+    required: true,
   },
   likes: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }],  // Array of users who liked the card
-    default: [],  // Default is an empty array
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }],
+    default: [],
   },
   createdAt: {
     type: Date,
-    default: Date.now,  // Default creation date is the current date and time
+    default: Date.now,
   },
 });
 

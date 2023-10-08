@@ -35,7 +35,7 @@ const login = (req, res, next) => {
       const token = jwt.sign(
         { _id: user._id.toString() },
         NODE_ENV === 'production' ? JWT_SECRET : 'prpZUoYKk3YJ3nhemFHZ',
-        { expiresIn: JWT_TOKEN_EXPIRES }
+        { expiresIn: JWT_TOKEN_EXPIRES },
       );
       res.cookie('jwt', token, {
         maxAge: COOKIE_MAX_AGE,

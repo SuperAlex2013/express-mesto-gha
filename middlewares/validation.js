@@ -68,5 +68,5 @@ module.exports = {
   validationUpdateUser,
   validationUpdateAvatar,
   validationCreateCard,
-  validationCardById
+  validationCardById,
 };
