@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { IS_URL } = require('../util/constants');
 
-// Define the card schema for MongoDB
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -13,9 +12,8 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      // Check if the provided link is a valid URL
       validator: (url) => IS_URL.test(url),
-      message: (props) => `${props.value} - некорректная ссылка!`,
+      message: (props) => `${props.value} - невалидная ссылка!`,
     },
   },
   owner: {
@@ -33,8 +31,5 @@ const cardSchema = new mongoose.Schema({
   },
 });
 
-// Create a Mongoose model for the card schema
 const Card = mongoose.model('card', cardSchema);
-
-// Export the Card model
 module.exports = Card;
